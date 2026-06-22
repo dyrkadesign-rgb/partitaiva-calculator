@@ -659,7 +659,7 @@ const TR = {
     rivalsa: '4% rivalsa INPS on client invoice',
     rivalsaDesc: 'Client pays 4% surcharge — reduces your net INPS cost',
     resLabel: 'Real Net Income',
-    resMonthly: '/ month', resRate: 'Effective rate: ',
+    resMonthly: '/ month', resInvoiceSub: 'net from this invoice', resRate: 'Effective rate: ',
     placeholder: 'Enter your income to see your net take-home',
     deductToggle: 'Advanced Deductions',
     commercialista: 'Accountant / Commercialista (yearly)',
@@ -750,7 +750,7 @@ const TR = {
     rivalsa: 'Rivalsa INPS 4% sul cliente',
     rivalsaDesc: 'Il cliente paga il 4% in più in fattura — riduce il tuo costo INPS netto',
     resLabel: 'Reddito Netto Reale',
-    resMonthly: '/ mese', resRate: 'Aliquota effettiva: ',
+    resMonthly: '/ mese', resInvoiceSub: 'netto da questa fattura', resRate: 'Aliquota effettiva: ',
     placeholder: 'Inserisci il tuo reddito per vedere il netto',
     deductToggle: 'Deduzioni Avanzate',
     commercialista: 'Commercialista (annuale)',
@@ -1171,7 +1171,7 @@ function calculatePiva() {
     const tax=taxBase*taxRate;
     const netBefore=rev-netINPS-tax;
     const realNet=netBefore-ded.total;
-    R={type:'forfettario',rev,coeff:cat.coeff,taxable,inps:inps.total,rivalsaAmt,netINPS,taxBase,tax,taxRate,irpef:null,regional:null,municipal:null,actualCosts:0,netBefore,ded,realNet,monthly:realNet/12,effRate:rev>0?(netINPS+tax)/rev:0};
+    R={type:'forfettario',isInvoice:PS.invoiceType==='single',rev,coeff:cat.coeff,taxable,inps:inps.total,rivalsaAmt,netINPS,taxBase,tax,taxRate,irpef:null,regional:null,municipal:null,actualCosts:0,netBefore,ded,realNet,monthly:realNet/12,effRate:rev>0?(netINPS+tax)/rev:0};
   } else {
     $('forfettario-warning').classList.remove('show');
     const actualCosts=parseFloat($('actual-costs-input').value.replace(/[^0-9.]/g,''))||0;
@@ -1183,7 +1183,7 @@ function calculatePiva() {
     const totalTax=irpefAmt+regional+municipal;
     const netBefore=rev-inps.total-totalTax;
     const realNet=netBefore-ded.total;
-    R={type:'ordinario',rev,coeff:cat.coeff,taxable,inps:inps.total,rivalsaAmt:0,netINPS:inps.total,taxBase,tax:totalTax,taxRate:null,irpef:irpefAmt,regional,municipal,actualCosts,netBefore,ded,realNet,monthly:realNet/12,effRate:rev>0?(inps.total+totalTax)/rev:0};
+    R={type:'ordinario',isInvoice:PS.invoiceType==='single',rev,coeff:cat.coeff,taxable,inps:inps.total,rivalsaAmt:0,netINPS:inps.total,taxBase,tax:totalTax,taxRate:null,irpef:irpefAmt,regional,municipal,actualCosts,netBefore,ded,realNet,monthly:realNet/12,effRate:rev>0?(inps.total+totalTax)/rev:0};
   }
   renderPivaResults(R); renderPivaChart(R);
 }
@@ -1197,7 +1197,11 @@ function renderPivaResults(R) {
   const L=TR[lang];
   $('piva-res-label').textContent=L.resLabel;
   $('piva-res-net').textContent=fmt(R.realNet);
-  $('piva-res-monthly').textContent=fmt(R.monthly)+' '+L.resMonthly;
+  if(R.isInvoice){
+    $('piva-res-monthly').textContent=L.resInvoiceSub;
+  } else {
+    $('piva-res-monthly').textContent=fmt(R.monthly)+' '+L.resMonthly;
+  }
   $('piva-res-rate').textContent=L.resRate+pct(R.effRate);
   let h='';
   h+=brRow(L.gross,R.rev);
