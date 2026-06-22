@@ -41,11 +41,11 @@
     }
     .header-left { display: flex; align-items: center; gap: 12px; }
     .logo {
-      width: 36px; height: 36px; background: var(--primary);
-      border-radius: 9px; display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 700; font-size: 15px; flex-shrink: 0;
-      cursor: pointer;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; cursor: pointer;
     }
+    .logo img { width: 44px; height: 44px; object-fit: contain; display: block; }
     .header-title { font-size: 15px; font-weight: 600; }
     .header-subtitle { font-size: 12px; color: var(--text-muted); }
     .header-right { display: flex; align-items: center; gap: 10px; }
@@ -277,7 +277,7 @@
 <!-- ════════════════════════════════════════ HEADER ════════ -->
 <header class="header">
   <div class="header-left">
-    <div class="logo" onclick="goHome()">P</div>
+    <div class="logo" onclick="goHome()"><img src="NetCal-icon.png" alt="home" /></div>
     <div>
       <div class="header-title" id="h-title">Italy Income Calculator</div>
       <div class="header-subtitle" id="h-subtitle">Net income for Italian professionals</div>
