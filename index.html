@@ -248,6 +248,12 @@
     @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
     .deduct-input { padding: 9px 12px 9px 28px !important; font-size: 15px !important; height: 44px !important; }
 
+    /* ── PERCENTAGE INPUT ── */
+    .pct-wrapper { position: relative; }
+    .pct-wrapper input { padding-right: 36px !important; }
+    .pct-symbol { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 600; color: var(--text-muted); pointer-events: none; }
+    .rate-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
     /* ── DIPENDENTE SPECIFIC ── */
     .months-group { display: flex; gap: 10px; }
     .month-option { flex: 1; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all .15s; user-select: none; }
@@ -500,6 +506,32 @@
           <option value="0.0584" id="dip-opt-app">Apprendistato (5.84%)</option>
         </select>
       </div>
+
+      <div class="form-group">
+        <label id="lbl-dip-region">Region</label>
+        <select id="dip-region" onchange="onRegionChange()">
+          <option value="" id="dip-region-placeholder">— Select your region —</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label id="lbl-regional-rate">Regional tax rate</label>
+          <div class="pct-wrapper">
+            <input type="text" id="dip-regional-rate" value="1.73" oninput="calculateDip()" inputmode="decimal" />
+            <span class="pct-symbol">%</span>
+          </div>
+          <div class="rate-hint" id="hint-regional-rate">Range: 0% – 3.33%</div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label id="lbl-municipal-rate">Municipal tax rate</label>
+          <div class="pct-wrapper">
+            <input type="text" id="dip-municipal-rate" value="0.50" oninput="calculateDip()" inputmode="decimal" />
+            <span class="pct-symbol">%</span>
+          </div>
+          <div class="rate-hint" id="hint-municipal-rate">Typical: 0.1% – 0.9%</div>
+        </div>
+      </div>
       <div class="form-group">
         <label id="lbl-months">Monthly Pay Periods</label>
         <div class="months-group">
@@ -650,6 +682,12 @@ const TR = {
     inpsDipType: 'INPS Contribution Rate',
     dipStd: 'Standard employee (9.19%)',
     dipApp: 'Apprendistato (5.84%)',
+    dipRegion: 'Region',
+    dipRegionPlaceholder: '— Select your region —',
+    regionalRate: 'Regional tax rate',
+    municipalRate: 'Municipal tax rate',
+    hintRegional: 'Range: 0% – 3.33%',
+    hintMunicipal: 'Typical: 0.1% – 0.9%',
     months: 'Monthly Pay Periods',
     lbl12m: 'months', lbl13m: '+ tredicesima', lbl14m: '+ quattordicesima',
     ralCard: 'RAL — Gross Annual Salary',
@@ -666,8 +704,8 @@ const TR = {
     detrazioni: 'Detrazioni lavoro dipendente',
     trattamento: 'Trattamento integrativo',
     irpefNetta: 'IRPEF netta',
-    addRegionale: 'Regional surtax (~1.73%)',
-    addComunale: 'Municipal surtax (~0.5%)',
+    addRegionale: 'Regional surtax',
+    addComunale: 'Municipal surtax',
     netAnnual: 'Net Annual',
     benefitsSection: 'TAX-FREE BENEFITS',
     mealVouchersLbl: 'Meal Vouchers',
@@ -734,6 +772,12 @@ const TR = {
     inpsDipType: 'Aliquota Contributi INPS',
     dipStd: 'Lavoratore standard (9,19%)',
     dipApp: 'Apprendistato (5,84%)',
+    dipRegion: 'Regione',
+    dipRegionPlaceholder: '— Seleziona la tua regione —',
+    regionalRate: 'Aliquota regionale',
+    municipalRate: 'Aliquota comunale',
+    hintRegional: 'Range: 0% – 3,33%',
+    hintMunicipal: 'Tipica: 0,1% – 0,9%',
     months: 'Mensilità',
     lbl12m: 'mensilità', lbl13m: '+ tredicesima', lbl14m: '+ quattordicesima',
     ralCard: 'RAL — Reddito Annuo Lordo',
@@ -750,8 +794,8 @@ const TR = {
     detrazioni: 'Detrazioni lavoro dipendente',
     trattamento: 'Trattamento integrativo',
     irpefNetta: 'IRPEF netta',
-    addRegionale: 'Addizionale regionale (~1,73%)',
-    addComunale: 'Addizionale comunale (~0,5%)',
+    addRegionale: 'Addizionale regionale',
+    addComunale: 'Addizionale comunale',
     netAnnual: 'Netto Annuale',
     benefitsSection: 'BENEFIT ESENTASSE',
     mealVouchersLbl: 'Buoni Pasto',
@@ -765,6 +809,32 @@ const TR = {
     dipChartBenefits: 'Benefit',
   }
 };
+
+// ─────────────────────────────────────────────
+// REGION DATA (addizionale regionale 2024, upper bracket)
+// ─────────────────────────────────────────────
+const REGIONS = [
+  { en:'Abruzzo',               it:'Abruzzo',               r:1.73 },
+  { en:'Basilicata',            it:'Basilicata',             r:1.23 },
+  { en:'Calabria',              it:'Calabria',               r:3.33 },
+  { en:'Campania',              it:'Campania',               r:3.33 },
+  { en:'Emilia-Romagna',        it:'Emilia-Romagna',         r:1.33 },
+  { en:'Friuli-Venezia Giulia', it:'Friuli-Venezia Giulia',  r:0.70 },
+  { en:'Lazio',                 it:'Lazio',                  r:3.33 },
+  { en:'Liguria',               it:'Liguria',                r:1.23 },
+  { en:'Lombardia',             it:'Lombardia',              r:1.73 },
+  { en:'Marche',                it:'Marche',                 r:1.50 },
+  { en:'Molise',                it:'Molise',                 r:2.03 },
+  { en:'Piemonte',              it:'Piemonte',               r:1.62 },
+  { en:'Puglia',                it:'Puglia',                 r:2.03 },
+  { en:'Sardegna',              it:'Sardegna',               r:1.23 },
+  { en:'Sicilia',               it:'Sicilia',                r:1.23 },
+  { en:'Toscana',               it:'Toscana',                r:1.42 },
+  { en:'Trentino-Alto Adige',   it:'Trentino-Alto Adige',    r:1.23 },
+  { en:'Umbria',                it:'Umbria',                 r:1.23 },
+  { en:"Valle d'Aosta",        it:"Valle d'Aosta",           r:0.00 },
+  { en:'Veneto',                it:'Veneto',                 r:1.23 },
+];
 
 // ─────────────────────────────────────────────
 // ATECO DATA
@@ -885,6 +955,12 @@ function applyTranslations() {
   $('lbl-inps-dip-type').textContent = L.inpsDipType;
   $('dip-opt-std').textContent = L.dipStd;
   $('dip-opt-app').textContent = L.dipApp;
+  $('lbl-dip-region').textContent = L.dipRegion;
+  $('lbl-regional-rate').textContent = L.regionalRate;
+  $('lbl-municipal-rate').textContent = L.municipalRate;
+  $('hint-regional-rate').textContent = L.hintRegional;
+  $('hint-municipal-rate').textContent = L.hintMunicipal;
+  populateRegions();
   $('lbl-months').textContent = L.months;
   $('lbl-12m').textContent = L.lbl12m;
   $('lbl-13m').textContent = L.lbl13m;
@@ -919,6 +995,28 @@ function populateCategories() {
 }
 
 function onCategoryChange() { PS.catId = $('cat-select').value; calculatePiva(); }
+
+// ─────────────────────────────────────────────
+// REGIONS
+// ─────────────────────────────────────────────
+function populateRegions() {
+  const sel = $('dip-region');
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${t('dipRegionPlaceholder')}</option>`;
+  REGIONS.forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.r;
+    o.textContent = r[lang] + '  (' + r.r.toFixed(2) + '%)';
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+}
+
+function onRegionChange() {
+  const val = $('dip-region').value;
+  if (val !== '') $('dip-regional-rate').value = parseFloat(val).toFixed(2);
+  calculateDip();
+}
 
 // ─────────────────────────────────────────────
 // FUZZY SEARCH
@@ -1173,8 +1271,10 @@ function calculateDip() {
   const detr=detrazioniDip(taxBase);
   const tratt=trattamentoIntegrativo(taxBase);
   const irpefN=Math.max(irpefL-detr-tratt,0);
-  const regional=taxBase*0.0173;
-  const municipal=taxBase*0.005;
+  const regionalRate = (parseFloat($('dip-regional-rate').value) || 1.73) / 100;
+  const municipalRate = (parseFloat($('dip-municipal-rate').value) || 0.50) / 100;
+  const regional = taxBase * regionalRate;
+  const municipal = taxBase * municipalRate;
   const totalTax=irpefN+regional+municipal;
   const netAnnual=ral-inpsEmp-totalTax;
   const netMonthly=netAnnual/DS.months;
@@ -1182,7 +1282,7 @@ function calculateDip() {
   const tfr=ral/13.5; // ~6.91% accrual
   const costAzienda=ral*1.29;
   const effRate=(inpsEmp+totalTax)/ral;
-  const R={ral,inpsRate,inpsEmp,taxBase,irpefL,detr,tratt,irpefN,regional,municipal,totalTax,netAnnual,netMonthly,benefits,meal,welfare,totalNetWithBenefits,tfr,costAzienda,effRate,months:DS.months};
+  const R={ral,inpsRate,inpsEmp,taxBase,irpefL,detr,tratt,irpefN,regional,municipal,regionalRate:(regionalRate*100).toFixed(2),municipalRate:(municipalRate*100).toFixed(2),totalTax,netAnnual,netMonthly,benefits,meal,welfare,totalNetWithBenefits,tfr,costAzienda,effRate,months:DS.months};
   // RAL info box
   const infoBox=$('dip-ral-info');
   infoBox.style.display='';
@@ -1206,8 +1306,8 @@ function renderDipResults(R) {
   h+=brRow(L.detrazioni,R.detr,'pos');
   if(R.tratt>0) h+=brRow(L.trattamento,R.tratt,'pos');
   h+=brRow(L.irpefNetta,R.irpefN,'neg');
-  h+=brRow(L.addRegionale,R.regional,'neg');
-  h+=brRow(L.addComunale,R.municipal,'neg');
+  h+=brRow(`${L.addRegionale} (${R.regionalRate}%)`,R.regional,'neg');
+  h+=brRow(`${L.addComunale} (${R.municipalRate}%)`,R.municipal,'neg');
   h+=brNet(L.netAnnual,R.netAnnual);
   if(R.benefits>0){
     h+=brSection(L.benefitsSection);
@@ -1239,6 +1339,7 @@ function renderDipChart(R) {
 // ─────────────────────────────────────────────
 function init() {
   populateCategories();
+  populateRegions();
   applyTranslations();
   setRegime('forfettario');
   setMonths(13);
