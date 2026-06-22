@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Italy Income Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #EEF2FF;
+      --primary-border: #C7D2FE;
+      --green: #10B981;
+      --green-light: #ECFDF5;
+      --orange: #F59E0B;
+      --red: #EF4444;
+      --blue: #3B82F6;
+      --slate: #94A3B8;
+      --bg: #F1F5F9;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --radius: 14px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.5; min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 36px; height: 36px; background: var(--primary);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 15px; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .header-title { font-size: 15px; font-weight: 600; }
+    .header-subtitle { font-size: 12px; color: var(--text-muted); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .back-btn {
+      display: none; align-items: center; gap: 6px;
+      background: none; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 500; color: var(--primary);
+      padding: 6px 10px; border-radius: 8px; font-family: inherit;
+      transition: background .15s;
+    }
+    .back-btn:hover { background: var(--primary-light); }
+    .back-btn.visible { display: flex; }
+    .lang-toggle {
+      display: flex; background: var(--bg);
+      border-radius: 9px; padding: 3px; gap: 2px;
+    }
+    .lang-btn {
+      padding: 5px 14px; border: none; background: transparent;
+      border-radius: 7px; font-size: 13px; font-weight: 500;
+      cursor: pointer; color: var(--text-muted); transition: all .15s;
+    }
+    .lang-btn.active { background: #fff; color: var(--text); box-shadow: var(--shadow); }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── HOME SCREEN ── */
+    .home-wrap {
+      min-height: calc(100vh - 65px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 48px 20px;
+    }
+    .home-eyebrow {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--primary); margin-bottom: 12px;
+      text-align: center;
+    }
+    .home-title {
+      font-size: 32px; font-weight: 700; text-align: center;
+      line-height: 1.2; margin-bottom: 12px; color: var(--text);
+    }
+    .home-subtitle {
+      font-size: 16px; color: var(--text-muted); text-align: center;
+      max-width: 480px; margin-bottom: 52px; line-height: 1.6;
+    }
+    .home-cards {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; max-width: 680px; width: 100%;
+    }
+    @media (max-width: 580px) { .home-cards { grid-template-columns: 1fr; } }
+    .home-card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 18px; padding: 32px 28px; cursor: pointer;
+      transition: all .18s; box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .home-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.1), var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .home-card-icon {
+      font-size: 40px; margin-bottom: 18px; line-height: 1;
+    }
+    .home-card-tag {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--primary);
+      background: var(--primary-light); padding: 3px 9px;
+      border-radius: 20px; display: inline-block; margin-bottom: 10px;
+      width: fit-content;
+    }
+    .home-card-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .home-card-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; flex: 1; }
+    .home-card-cta {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; color: var(--primary);
+    }
+    .home-card-cta-arrow { transition: transform .15s; }
+    .home-card:hover .home-card-cta-arrow { transform: translateX(4px); }
+    .home-pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .home-pill {
+      font-size: 11px; padding: 3px 9px; border-radius: 20px;
+      background: var(--bg); color: var(--text-muted); border: 1px solid var(--border);
+    }
+
+    /* ── CONTAINER ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 28px 16px 48px; display: flex; flex-direction: column; gap: 18px; }
+
+    /* ── CARDS ── */
+    .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
+    .card-body { padding: 22px 24px 24px; }
+    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 18px; }
+
+    /* ── SEGMENT CONTROL ── */
+    .segment-control { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; gap: 2px; width: fit-content; margin-bottom: 22px; }
+    .segment-btn { padding: 8px 22px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all .15s; white-space: nowrap; }
+    .segment-btn.active { background: #fff; color: var(--primary); box-shadow: var(--shadow); }
+
+    /* ── FORM ELEMENTS ── */
+    .form-group { margin-bottom: 20px; }
+    .form-group:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+    input[type="text"], select {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 9px;
+      font-size: 15px; color: var(--text); background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+      outline: none; font-family: inherit;
+    }
+    input[type="text"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+    /* ── INCOME INPUT ── */
+    .income-wrapper { position: relative; }
+    .income-wrapper input { padding-left: 28px; font-size: 22px; font-weight: 600; height: 54px; }
+    .currency-symbol { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 17px; font-weight: 600; color: var(--text-muted); pointer-events: none; }
+    .period-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; min-height: 18px; }
+
+    /* ── ATECO HELPER ── */
+    .ateco-helper { background: var(--primary-light); border: 1.5px solid var(--primary-border); border-radius: var(--radius); padding: 16px; margin-bottom: 22px; }
+    .ateco-helper-title { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .suggestions-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
+    .suggestion-item { padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: space-between; transition: all .12s; background: #fff; border: 1px solid var(--border); }
+    .suggestion-item:hover { background: var(--primary-light); border-color: var(--primary); }
+    .suggestion-coeff { font-size: 11px; background: var(--primary-light); color: var(--primary); padding: 2px 7px; border-radius: 5px; font-weight: 700; flex-shrink: 0; }
+
+    /* ── RADIO OPTIONS ── */
+    .radio-group { display: flex; gap: 10px; }
+    .radio-option { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all .15s; user-select: none; }
+    .radio-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .radio-option .rate { font-size: 22px; font-weight: 700; display: block; margin-bottom: 2px; }
+    .radio-option .rate-label { font-size: 12px; }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 14px 0; border-top: 1px solid var(--border); }
+    .toggle-info { flex: 1; }
+    .toggle-label { font-size: 14px; font-weight: 500; }
+    .toggle-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .toggle-switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; margin-top: 1px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #CBD5E1; border-radius: 24px; transition: .2s; }
+    .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .toggle-switch input:checked + .toggle-slider { background: var(--primary); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* ── WARNING ── */
+    .warning { background: #FEF3C7; border: 1.5px solid #F59E0B; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #92400E; display: none; margin-top: 10px; }
+    .warning.show { display: block; }
+
+    /* ── INFO BOX ── */
+    .info-box { background: var(--primary-light); border: 1.5px solid var(--primary-border); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--primary); margin-top: 10px; line-height: 1.5; }
+
+    /* ── RESULTS CARD ── */
+    .results-card { background: var(--card); border-radius: var(--radius); border: 1.5px solid var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.08), var(--shadow-md); overflow: hidden; }
+    .results-placeholder { text-align: center; padding: 52px 24px; color: var(--text-muted); }
+    .results-placeholder .icon { font-size: 44px; margin-bottom: 12px; }
+    .results-placeholder p { font-size: 14px; }
+    .results-header { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); padding: 24px 28px; color: #fff; }
+    .results-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; opacity: .75; margin-bottom: 6px; }
+    .results-net { font-size: 42px; font-weight: 700; line-height: 1.1; }
+    .results-sub { font-size: 14px; opacity: .8; margin-top: 4px; }
+    .results-rate { font-size: 13px; opacity: .65; margin-top: 2px; }
+    .results-body { padding: 24px 28px; display: grid; grid-template-columns: 1fr 230px; gap: 36px; }
+    @media (max-width: 620px) { .results-body { grid-template-columns: 1fr; } .chart-wrapper { order: -1; } }
+
+    /* ── BREAKDOWN TABLE ── */
+    .breakdown-table { display: flex; flex-direction: column; }
+    .br-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .br-row:last-child { border-bottom: none; }
+    .br-row .lbl { color: var(--text-muted); }
+    .br-row .val { font-weight: 600; }
+    .br-row.neg .val { color: var(--red); }
+    .br-row.pos .val { color: var(--green); }
+    .br-section { padding: 14px 0 4px; border-bottom: none; }
+    .br-section .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); }
+    .br-net { padding: 12px 0 4px; border-top: 2px solid var(--border); margin-top: 4px; border-bottom: none; }
+    .br-net .lbl { font-weight: 600; font-size: 15px; color: var(--text); }
+    .br-net .val { font-size: 20px; color: var(--green); }
+    .br-info { padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+    .br-info .lbl { color: var(--slate); font-style: italic; }
+    .br-info .val { color: var(--slate); font-weight: 500; }
+
+    /* ── CHART ── */
+    .chart-wrapper { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .chart-canvas-wrap { width: 190px; height: 190px; }
+    .chart-legend { display: flex; flex-direction: column; gap: 9px; width: 100%; }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-lbl { color: var(--text-muted); flex: 1; }
+    .legend-val { font-weight: 600; }
+
+    /* ── DEDUCTIONS ── */
+    .deductions-toggle-btn { width: 100%; padding: 15px 24px; background: none; border: none; text-align: left; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 8px; transition: background .15s; font-family: inherit; }
+    .deductions-toggle-btn:hover { background: var(--primary-light); }
+    .deductions-body { display: none; flex-direction: column; gap: 18px; padding: 4px 24px 24px; border-top: 1px solid var(--border); }
+    .deductions-body.open { display: flex; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
+    .deduct-input { padding: 9px 12px 9px 28px !important; font-size: 15px !important; height: 44px !important; }
+
+    /* ── DIPENDENTE SPECIFIC ── */
+    .months-group { display: flex; gap: 10px; }
+    .month-option { flex: 1; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all .15s; user-select: none; }
+    .month-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .month-option .m-num { font-size: 20px; font-weight: 700; display: block; margin-bottom: 1px; }
+    .month-option .m-label { font-size: 11px; }
+    .dipendente-header { background: linear-gradient(135deg, #0F766E 0%, #0D9488 100%); }
+
+    /* ── SCREEN TITLE BADGE ── */
+    .screen-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; padding: 4px 10px;
+      border-radius: 20px; margin-left: 4px;
+    }
+    .badge-piva { background: var(--primary-light); color: var(--primary); }
+    .badge-dip  { background: #CCFBF1; color: #0F766E; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ HEADER ════════ -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo" onclick="goHome()">P</div>
+    <div>
+      <div class="header-title" id="h-title">Italy Income Calculator</div>
+      <div class="header-subtitle" id="h-subtitle">Net income for Italian professionals</div>
+    </div>
+    <button class="back-btn" id="back-btn" onclick="goHome()">
+      ← <span id="back-label">Home</span>
+    </button>
+  </div>
+  <div class="header-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('it')">IT</button>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════ HOME SCREEN ════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-wrap">
+    <div class="home-eyebrow" id="home-eyebrow">Italy Income Calculator</div>
+    <h1 class="home-title" id="home-title">What type of work<br>do you do?</h1>
+    <p class="home-subtitle" id="home-subtitle">Choose your employment type to calculate your real net income after all Italian taxes and contributions.</p>
+
+    <div class="home-cards">
+
+      <!-- P.IVA Card -->
+      <div class="home-card" onclick="goScreen('piva')">
+        <div class="home-card-icon">📊</div>
+        <div class="home-card-tag" id="tag-piva">Freelance · B2B</div>
+        <div class="home-card-title" id="card-piva-title">Partita IVA</div>
+        <div class="home-card-desc" id="card-piva-desc">Self-employed, Regime Forfettario or Ordinario. Flat tax 5–15%, INPS Gestione Separata, CPC bidding.</div>
+        <div class="home-pill-row">
+          <span class="home-pill">Forfettario</span>
+          <span class="home-pill">Ordinario</span>
+          <span class="home-pill">INPS GS</span>
+        </div>
+        <div class="home-card-cta">
+          <span id="cta-piva">Calculate your net</span>
+          <span class="home-card-cta-arrow">→</span>
+        </div>
+      </div>
+
+      <!-- Dipendente Card -->
+      <div class="home-card" onclick="goScreen('dip')">
+        <div class="home-card-icon">💼</div>
+        <div class="home-card-tag" id="tag-dip">Employee · Full-time</div>
+        <div class="home-card-title" id="card-dip-title">Dipendente</div>
+        <div class="home-card-desc" id="card-dip-desc">Employed, payroll. IRPEF brackets, employee INPS 9.19%, detrazioni, tredicesima, TFR.</div>
+        <div class="home-pill-row">
+          <span class="home-pill">IRPEF</span>
+          <span class="home-pill">INPS 9.19%</span>
+          <span class="home-pill">TFR</span>
+        </div>
+        <div class="home-card-cta">
+          <span id="cta-dip">Calculate your net</span>
+          <span class="home-card-cta-arrow">→</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ P.IVA SCREEN ═════════ -->
+<div id="screen-piva" class="screen">
+<div class="container">
+
+  <!-- Card 1: Regime & Category -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-title" id="lbl-regime">Tax Regime</div>
+      <div class="segment-control">
+        <button class="segment-btn active" onclick="setRegime('forfettario')" id="btn-forfettario">Forfettario</button>
+        <button class="segment-btn" onclick="setRegime('ordinario')" id="btn-ordinario">Ordinario</button>
+      </div>
+      <div class="ateco-helper">
+        <div class="ateco-helper-title" id="lbl-ateco-helper">🔍 I don't know my category. Let's find it.</div>
+        <input type="text" id="job-input" placeholder="Type your job title" oninput="onJobInput(this.value)" autocomplete="off" />
+        <div class="suggestions-list" id="suggestions"></div>
+      </div>
+      <div class="form-group">
+        <label id="lbl-category">Business Category</label>
+        <select id="cat-select" onchange="onCategoryChange()"></select>
+      </div>
+      <div id="years-group" class="form-group">
+        <label id="lbl-years">Years of Activity</label>
+        <div class="radio-group">
+          <div class="radio-option selected" onclick="setYears('under5')" id="opt-under5">
+            <span class="rate">5%</span><span class="rate-label" id="lbl-under5">Less than 5 years</span>
+          </div>
+          <div class="radio-option" onclick="setYears('over5')" id="opt-over5">
+            <span class="rate">15%</span><span class="rate-label" id="lbl-over5">5 years or more</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: Income -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-title" id="lbl-income-card">Income</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap;">
+        <div class="segment-control" style="margin-bottom:0">
+          <button class="segment-btn active" onclick="setInvoiceType('single')" id="btn-single">Single Invoice</button>
+          <button class="segment-btn" onclick="setInvoiceType('b2b')" id="btn-b2b">B2B Contract</button>
+        </div>
+        <div id="yearly-switch-row" style="display:none; align-items:center; gap:10px; flex-shrink:0;">
+          <span style="font-size:13px; font-weight:500; color:var(--text-muted);" id="lbl-yearly-switch">Yearly</span>
+          <label class="toggle-switch" style="margin-top:0">
+            <input type="checkbox" id="yearly-toggle" onchange="onYearlyToggle(this.checked)" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="income-wrapper">
+        <span class="currency-symbol">€</span>
+        <input type="text" id="income-input" placeholder="0" oninput="onIncomeInput(this.value)" inputmode="numeric" autocomplete="off" />
+      </div>
+      <div class="period-hint" id="period-hint"></div>
+      <div class="warning" id="forfettario-warning"></div>
+      <div id="actual-costs-group" style="display:none; margin-top:18px">
+        <label id="lbl-actual-costs">Deductible Costs (actual expenses)</label>
+        <div class="income-wrapper">
+          <span class="currency-symbol">€</span>
+          <input type="text" id="actual-costs-input" placeholder="0" oninput="calculatePiva()" inputmode="numeric" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: INPS -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-title" id="lbl-inps-card">INPS Contributions</div>
+      <div class="form-group">
+        <label id="lbl-inps-type">INPS Type</label>
+        <select id="inps-select" onchange="calculatePiva()">
+          <option value="gs" id="opt-gs">Gestione Separata</option>
+          <option value="art" id="opt-art">Artigiani</option>
+          <option value="com" id="opt-com">Commercianti</option>
+        </select>
+      </div>
+      <div class="toggle-row" id="rivalsa-row">
+        <div class="toggle-info">
+          <div class="toggle-label" id="lbl-rivalsa">4% rivalsa INPS on client invoice</div>
+          <div class="toggle-desc" id="lbl-rivalsa-desc">Client pays 4% surcharge — reduces your net INPS cost</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="rivalsa-toggle" checked onchange="calculatePiva()" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-card" id="piva-results-card">
+    <div id="piva-results-placeholder" class="results-placeholder">
+      <div class="icon">📊</div>
+      <p id="piva-placeholder-text">Enter your income to see your net take-home</p>
+    </div>
+    <div id="piva-results-content" style="display:none">
+      <div class="results-header">
+        <div class="results-title" id="piva-res-label">Real Net Income</div>
+        <div class="results-net" id="piva-res-net">€0</div>
+        <div class="results-sub" id="piva-res-monthly">€0 / month</div>
+        <div class="results-rate" id="piva-res-rate">Effective rate: 0%</div>
+      </div>
+      <div class="results-body">
+        <div class="breakdown-table" id="piva-breakdown"></div>
+        <div class="chart-wrapper">
+          <div class="chart-canvas-wrap"><canvas id="piva-chart"></canvas></div>
+          <div class="chart-legend" id="piva-legend"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deductions -->
+  <div class="card">
+    <button class="deductions-toggle-btn" onclick="toggleDeductions('piva')">
+      <span id="piva-deduct-icon">+</span>
+      <span id="piva-deduct-label">Advanced Deductions</span>
+    </button>
+    <div class="deductions-body" id="piva-deductions-body">
+      <div style="padding-top:4px"></div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label id="lbl-commercialista">Accountant / Commercialista (yearly)</label>
+          <div class="income-wrapper"><span class="currency-symbol">€</span>
+            <input type="text" class="deduct-input" id="d-commercialista" placeholder="0" oninput="calculatePiva()" inputmode="numeric" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label id="lbl-software">Software &amp; Tools (yearly)</label>
+          <div class="income-wrapper"><span class="currency-symbol">€</span>
+            <input type="text" class="deduct-input" id="d-software" placeholder="0" oninput="calculatePiva()" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label id="lbl-other">Other costs (yearly)</label>
+        <div class="income-wrapper"><span class="currency-symbol">€</span>
+          <input type="text" class="deduct-input" id="d-other" placeholder="0" oninput="calculatePiva()" inputmode="numeric" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /screen-piva -->
+
+<!-- ═══════════════════════════════ DIPENDENTE SCREEN ════════ -->
+<div id="screen-dip" class="screen">
+<div class="container">
+
+  <!-- Card 1: Contract type -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-title" id="lbl-dip-contract">Contract Type</div>
+      <div class="form-group">
+        <label id="lbl-inps-dip-type">INPS Contribution Rate</label>
+        <select id="dip-inps-type" onchange="calculateDip()">
+          <option value="0.0919" id="dip-opt-std">Standard employee (9.19%)</option>
+          <option value="0.0584" id="dip-opt-app">Apprendistato (5.84%)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="lbl-months">Monthly Pay Periods</label>
+        <div class="months-group">
+          <div class="month-option" onclick="setMonths(12)" id="opt-12m">
+            <span class="m-num">12</span>
+            <span class="m-label" id="lbl-12m">months</span>
+          </div>
+          <div class="month-option selected" onclick="setMonths(13)" id="opt-13m">
+            <span class="m-num">13</span>
+            <span class="m-label" id="lbl-13m">+ tredicesima</span>
+          </div>
+          <div class="month-option" onclick="setMonths(14)" id="opt-14m">
+            <span class="m-num">14</span>
+            <span class="m-label" id="lbl-14m">+ quattordicesima</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: RAL Income -->
+  <div class="card">
+    <div class="card-body">
+      <div class="card-title" id="lbl-ral-card">RAL — Gross Annual Salary</div>
+      <div class="segment-control" style="margin-bottom:14px">
+        <button class="segment-btn active" onclick="setDipPeriod('monthly')" id="dip-btn-monthly">Monthly</button>
+        <button class="segment-btn" onclick="setDipPeriod('yearly')" id="dip-btn-yearly">Yearly</button>
+      </div>
+      <div class="income-wrapper">
+        <span class="currency-symbol">€</span>
+        <input type="text" id="dip-income" placeholder="0" oninput="onDipIncomeInput(this.value)" inputmode="numeric" autocomplete="off" />
+      </div>
+      <div class="period-hint" id="dip-period-hint"></div>
+      <div class="info-box" id="dip-ral-info" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-card" id="dip-results-card">
+    <div id="dip-results-placeholder" class="results-placeholder">
+      <div class="icon">💼</div>
+      <p id="dip-placeholder-text">Enter your RAL to see your net take-home</p>
+    </div>
+    <div id="dip-results-content" style="display:none">
+      <div class="results-header dipendente-header">
+        <div class="results-title" id="dip-res-label">Real Net Income</div>
+        <div class="results-net" id="dip-res-net">€0</div>
+        <div class="results-sub" id="dip-res-monthly">€0 / month</div>
+        <div class="results-rate" id="dip-res-rate">Effective rate: 0%</div>
+      </div>
+      <div class="results-body">
+        <div class="breakdown-table" id="dip-breakdown"></div>
+        <div class="chart-wrapper">
+          <div class="chart-canvas-wrap"><canvas id="dip-chart"></canvas></div>
+          <div class="chart-legend" id="dip-legend"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional Benefits -->
+  <div class="card">
+    <button class="deductions-toggle-btn" onclick="toggleDeductions('dip')">
+      <span id="dip-deduct-icon">+</span>
+      <span id="dip-deduct-label">Optional Benefits (tax-free)</span>
+    </button>
+    <div class="deductions-body" id="dip-deductions-body">
+      <div style="padding-top:4px"></div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label id="lbl-meal-vouchers">Meal Vouchers / Ticket Pasto (yearly)</label>
+          <div class="income-wrapper"><span class="currency-symbol">€</span>
+            <input type="text" class="deduct-input" id="d-meal" placeholder="0" oninput="calculateDip()" inputmode="numeric" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label id="lbl-welfare">Welfare Aziendale (yearly)</label>
+          <div class="income-wrapper"><span class="currency-symbol">€</span>
+            <input type="text" class="deduct-input" id="d-welfare" placeholder="0" oninput="calculateDip()" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div><!-- /screen-dip -->
+
+<!-- ═══════════════════════════════════════════════ JS ═════ -->
+<script>
+// ─────────────────────────────────────────────
+// TRANSLATIONS
+// ─────────────────────────────────────────────
+const TR = {
+  en: {
+    pageTitle: 'Italy Income Calculator',
+    headerSub: 'Net income for Italian professionals',
+    homeEyebrow: 'Italy Income Calculator',
+    homeTitle: 'What type of work do you do?',
+    homeSubtitle: 'Choose your employment type to calculate your real net income after all Italian taxes and contributions.',
+    backLabel: 'Home',
+    tagPiva: 'Freelance · B2B',
+    tagDip: 'Employee · Full-time',
+    cardPivaTitle: 'Partita IVA',
+    cardPivaDesc: 'Self-employed, Regime Forfettario or Ordinario. Flat tax 5–15%, INPS Gestione Separata.',
+    cardDipTitle: 'Dipendente',
+    cardDipDesc: 'Employed, payroll. IRPEF brackets, employee INPS 9.19%, detrazioni, tredicesima, TFR.',
+    ctaPiva: 'Calculate your net',
+    ctaDip: 'Calculate your net',
+    // P.IVA
+    regime: 'Tax Regime', forfettario: 'Forfettario', ordinario: 'Ordinario',
+    atecoHelper: "I don't know my category. Let's find it.",
+    jobPlaceholder: 'Type your job title',
+    category: 'Business Category',
+    years: 'Years of Activity',
+    under5: 'Less than 5 years', over5: '5 years or more',
+    incomeCard: 'Income', monthly: 'Monthly', yearly: 'Yearly',
+    singleInvoice: 'Single Invoice', b2bContract: 'B2B Contract',
+    yearlySwitch: 'Annual salary',
+    hintMonthly: 'Yearly equivalent: ', hintYearly: 'Monthly equivalent: ',
+    hintSingleInvoice: 'One-time invoice — taxes calculated on this total amount',
+    year: 'year', month: 'month',
+    inpsCard: 'INPS Contributions', inpsType: 'INPS Type',
+    gs: 'Gestione Separata', art: 'Artigiani', com: 'Commercianti',
+    rivalsa: '4% rivalsa INPS on client invoice',
+    rivalsaDesc: 'Client pays 4% surcharge — reduces your net INPS cost',
+    resLabel: 'Real Net Income',
+    resMonthly: '/ month', resRate: 'Effective rate: ',
+    placeholder: 'Enter your income to see your net take-home',
+    deductToggle: 'Advanced Deductions',
+    commercialista: 'Accountant / Commercialista (yearly)',
+    software: 'Software & Tools (yearly)',
+    other: 'Other costs (yearly)',
+    forfettarioWarn: '⚠️ Income exceeds €85,000 — Regime Forfettario no longer applies.',
+    actualCosts: 'Deductible Costs (actual expenses)',
+    gross: 'Gross Revenue', coefficient: 'Profitability Coefficient',
+    taxable: 'Taxable Income', inpsTotal: 'INPS Contributions',
+    rivalsaRec: 'Rivalsa recovered (from client)',
+    netINPS: 'Net INPS cost', taxBase: 'Tax Base', incomeTax: 'Income Tax',
+    irpef: 'IRPEF', regional: 'Regional surtax (~1.73%)', municipal: 'Municipal surtax (~0.5%)',
+    actualCostsLbl: 'Deductible Costs', netBefore: 'Net before optional costs',
+    deductsCosts: 'OPTIONAL COSTS',
+    commercialistaLbl: 'Accountant', softwareLbl: 'Software & Tools', otherLbl: 'Other costs',
+    realNet: 'Real Net Income',
+    chartINPS: 'INPS', chartTax: 'Income Tax', chartCosts: 'Other Costs', chartNet: 'Net',
+    // Dipendente
+    dipContract: 'Contract Type',
+    inpsDipType: 'INPS Contribution Rate',
+    dipStd: 'Standard employee (9.19%)',
+    dipApp: 'Apprendistato (5.84%)',
+    months: 'Monthly Pay Periods',
+    lbl12m: 'months', lbl13m: '+ tredicesima', lbl14m: '+ quattordicesima',
+    ralCard: 'RAL — Gross Annual Salary',
+    dipResLabel: 'Real Net Income',
+    dipPlaceholder: 'Enter your RAL to see your net take-home',
+    dipDeductToggle: 'Optional Benefits (tax-free)',
+    mealVouchers: 'Meal Vouchers / Ticket Pasto (yearly)',
+    welfare: 'Welfare Aziendale (yearly)',
+    ralInfo: 'RAL typically includes tredicesima. Monthly shown is net ÷ pay periods.',
+    dipINPS: 'INPS Employee (9.19%)',
+    dipINPSapp: 'INPS Employee (5.84%)',
+    dipTaxBase: 'Tax Base (RAL − INPS)',
+    irpefLorda: 'IRPEF (gross)',
+    detrazioni: 'Detrazioni lavoro dipendente',
+    trattamento: 'Trattamento integrativo',
+    irpefNetta: 'IRPEF netta',
+    addRegionale: 'Regional surtax (~1.73%)',
+    addComunale: 'Municipal surtax (~0.5%)',
+    netAnnual: 'Net Annual',
+    benefitsSection: 'TAX-FREE BENEFITS',
+    mealVouchersLbl: 'Meal Vouchers',
+    welfareLbl: 'Welfare',
+    totalNet: 'Total Net Take-home',
+    tfrInfo: 'TFR accrual (deferred, ~6.91%)',
+    costAziendaInfo: 'Approx. cost to employer (~+29%)',
+    dipChartINPS: 'INPS',
+    dipChartTax: 'IRPEF + surtaxes',
+    dipChartNet: 'Net Salary',
+    dipChartBenefits: 'Benefits',
+  },
+  it: {
+    pageTitle: 'Calcolatore Reddito Italia',
+    headerSub: 'Reddito netto per i professionisti italiani',
+    homeEyebrow: 'Calcolatore Reddito Italia',
+    homeTitle: 'Che tipo di lavoro fai?',
+    homeSubtitle: 'Scegli il tuo tipo di impiego per calcolare il tuo reddito netto reale dopo tutte le tasse e i contributi italiani.',
+    backLabel: 'Home',
+    tagPiva: 'Freelance · B2B',
+    tagDip: 'Dipendente · Full-time',
+    cardPivaTitle: 'Partita IVA',
+    cardPivaDesc: 'Lavoratore autonomo, Regime Forfettario o Ordinario. Flat tax 5–15%, INPS Gestione Separata.',
+    cardDipTitle: 'Dipendente',
+    cardDipDesc: 'Lavoratore dipendente, busta paga. IRPEF a scaglioni, INPS 9,19%, detrazioni, tredicesima, TFR.',
+    ctaPiva: 'Calcola il tuo netto',
+    ctaDip: 'Calcola il tuo netto',
+    regime: 'Regime Fiscale', forfettario: 'Forfettario', ordinario: 'Ordinario',
+    atecoHelper: 'Non conosco la mia categoria. Aiutami a trovarla.',
+    jobPlaceholder: 'Scrivi la tua professione',
+    category: 'Categoria di attività',
+    years: 'Anni di attività',
+    under5: 'Meno di 5 anni', over5: '5 anni o più',
+    incomeCard: 'Reddito', monthly: 'Mensile', yearly: 'Annuale',
+    singleInvoice: 'Fattura Singola', b2bContract: 'Contratto B2B',
+    yearlySwitch: 'Stipendio annuale',
+    hintMonthly: 'Equivalente annuo: ', hintYearly: 'Equivalente mensile: ',
+    hintSingleInvoice: 'Fattura una tantum — tasse calcolate su questo importo totale',
+    year: 'anno', month: 'mese',
+    inpsCard: 'Contributi INPS', inpsType: 'Tipo INPS',
+    gs: 'Gestione Separata', art: 'Artigiani', com: 'Commercianti',
+    rivalsa: 'Rivalsa INPS 4% sul cliente',
+    rivalsaDesc: 'Il cliente paga il 4% in più in fattura — riduce il tuo costo INPS netto',
+    resLabel: 'Reddito Netto Reale',
+    resMonthly: '/ mese', resRate: 'Aliquota effettiva: ',
+    placeholder: 'Inserisci il tuo reddito per vedere il netto',
+    deductToggle: 'Deduzioni Avanzate',
+    commercialista: 'Commercialista (annuale)',
+    software: 'Software e strumenti (annuale)',
+    other: 'Altri costi (annuale)',
+    forfettarioWarn: '⚠️ Il reddito supera €85.000 — il Regime Forfettario non si applica.',
+    actualCosts: 'Costi deducibili (spese effettive)',
+    gross: 'Fatturato Lordo', coefficient: 'Coefficiente di Redditività',
+    taxable: 'Reddito Imponibile', inpsTotal: 'Contributi INPS',
+    rivalsaRec: 'Rivalsa recuperata (dal cliente)',
+    netINPS: 'Costo INPS netto', taxBase: 'Base Imponibile', incomeTax: 'Imposta sul Reddito',
+    irpef: 'IRPEF', regional: 'Addizionale regionale (~1,73%)', municipal: 'Addizionale comunale (~0,5%)',
+    actualCostsLbl: 'Costi Deducibili', netBefore: 'Netto prima dei costi opzionali',
+    deductsCosts: 'COSTI OPZIONALI',
+    commercialistaLbl: 'Commercialista', softwareLbl: 'Software e Strumenti', otherLbl: 'Altri Costi',
+    realNet: 'Reddito Netto Reale',
+    chartINPS: 'INPS', chartTax: 'Imposta', chartCosts: 'Altri Costi', chartNet: 'Netto',
+    dipContract: 'Tipo di Contratto',
+    inpsDipType: 'Aliquota Contributi INPS',
+    dipStd: 'Lavoratore standard (9,19%)',
+    dipApp: 'Apprendistato (5,84%)',
+    months: 'Mensilità',
+    lbl12m: 'mensilità', lbl13m: '+ tredicesima', lbl14m: '+ quattordicesima',
+    ralCard: 'RAL — Reddito Annuo Lordo',
+    dipResLabel: 'Reddito Netto Reale',
+    dipPlaceholder: 'Inserisci la tua RAL per vedere il netto',
+    dipDeductToggle: 'Benefit Opzionali (esentasse)',
+    mealVouchers: 'Buoni Pasto / Ticket Pasto (annuale)',
+    welfare: 'Welfare Aziendale (annuale)',
+    ralInfo: 'La RAL include generalmente la tredicesima. Il mensile mostrato è netto ÷ mensilità.',
+    dipINPS: 'INPS Dipendente (9,19%)',
+    dipINPSapp: 'INPS Dipendente (5,84%)',
+    dipTaxBase: 'Base Imponibile (RAL − INPS)',
+    irpefLorda: 'IRPEF (lorda)',
+    detrazioni: 'Detrazioni lavoro dipendente',
+    trattamento: 'Trattamento integrativo',
+    irpefNetta: 'IRPEF netta',
+    addRegionale: 'Addizionale regionale (~1,73%)',
+    addComunale: 'Addizionale comunale (~0,5%)',
+    netAnnual: 'Netto Annuale',
+    benefitsSection: 'BENEFIT ESENTASSE',
+    mealVouchersLbl: 'Buoni Pasto',
+    welfareLbl: 'Welfare',
+    totalNet: 'Netto Totale',
+    tfrInfo: 'Maturazione TFR (differito, ~6,91%)',
+    costAziendaInfo: 'Costo azienda approssimativo (~+29%)',
+    dipChartINPS: 'INPS',
+    dipChartTax: 'IRPEF + add.',
+    dipChartNet: 'Stipendio Netto',
+    dipChartBenefits: 'Benefit',
+  }
+};
+
+// ─────────────────────────────────────────────
+// ATECO DATA
+// ─────────────────────────────────────────────
+const ATECO = [
+  { id:'prof78', coeff:0.78, name:{en:'Professionals, IT, Consulting, Science',it:'Professionisti, IT, Consulenza, Scienze'},
+    kw:['consultant','consulente','developer','sviluppatore','designer','architect','architetto','lawyer','avvocato','engineer','ingegnere','analyst','analista','psychologist','psicologo','coach','photographer','fotografo','copywriter','marketing','seo','web designer','ux','ui','product manager','project manager','data scientist','data analyst','financial advisor','business consultant','software engineer','full stack','frontend','backend','devops','social media manager','graphic designer','brand designer','motion designer','illustrator','interior designer','accountant','commercialista','it consultant','freelancer','notary','notaio','surveyor','geometra','veterinarian','veterinario'] },
+  { id:'arts67', coeff:0.67, name:{en:'Artisans, Construction, Manufacturing',it:'Artigiani, Costruzioni, Manifattura'},
+    kw:['artigiano','craftsman','elettricista','electrician','idraulico','plumber','muratore','builder','carpenter','falegname','meccanico','mechanic','pittore','painter','sarto','tailor','ceramicista','jeweler','gioielliere','hairdresser','parrucchiere','barber','barbiere','estetica','beautician','nail','unghie','costruttore','decorator','gardener','giardiniere','imbianchino','welder','saldatore','locksmith','fabbro','tatuatore','tattoo'] },
+  { id:'retail40', coeff:0.40, name:{en:'Retail & Wholesale Commerce',it:'Commercio al Dettaglio e Ingrosso'},
+    kw:['commerciante','merchant','retailer','negozio','shop owner','boutique','store','abbigliamento','clothing','fashion','moda','ecommerce','e-commerce','online shop','dropshipping','amazon seller','reseller'] },
+  { id:'food40', coeff:0.40, name:{en:'Food Services & Accommodation',it:'Ristorazione e Alloggio'},
+    kw:['ristorante','restaurant','bar','cafe','caffetteria','hotel','b&b','chef','cook','cuoco','pizzaiolo','barista','waiter','cameriere','food','catering','pasticceria','bakery','gelateria'] },
+  { id:'transport67', coeff:0.67, name:{en:'Transport & Logistics',it:'Trasporti e Logistica'},
+    kw:['driver','autista','courier','corriere','transport','trasporto','delivery','rider','taxi','ncc','uber','logistics','logistica','mover','traslochi','shipping'] },
+  { id:'edu78', coeff:0.78, name:{en:'Education & Training',it:'Istruzione e Formazione'},
+    kw:['teacher','insegnante','tutor','trainer','formatore','coach','professor','lecturer','docente','istruttore','instructor','language teacher','music teacher'] },
+  { id:'health78', coeff:0.78, name:{en:'Healthcare & Social Assistance',it:'Sanità e Assistenza Sociale'},
+    kw:['doctor','medico','dentist','dentista','nurse','infermiere','therapist','terapista','physiotherapist','fisioterapista','nutritionist','nutrizionista','psychologist','psicologo','osteopath','personal trainer','social worker','speech therapist','logopedista','pharmacist','farmacista'] },
+  { id:'arts_ent67', coeff:0.67, name:{en:'Arts, Sports & Entertainment',it:'Arte, Sport e Intrattenimento'},
+    kw:['artist','artista','musician','musicista','actor','attore','yoga','fitness','dancer','ballerino','writer','scrittore','journalist','giornalista','blogger','youtuber','influencer','video editor','filmmaker','content creator','streamer','podcaster','videographer','dj','singer','cantante','comedian'] },
+  { id:'agent62', coeff:0.62, name:{en:'Commercial Agents & Representatives',it:'Agenti e Rappresentanti di Commercio'},
+    kw:['agent','agente','representative','rappresentante','sales agent','intermediary','intermediario','broker','mediatore','insurance agent','real estate','immobiliare'] }
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const PS = { // P.IVA state
+  lang:'en', regime:'forfettario', catId:'prof78', years:'under5',
+  period:'monthly', invoiceType:'single', incomeRaw:'', deductOpen:false,
+};
+const DS = { // Dipendente state
+  period:'monthly', incomeRaw:'', months:13, deductOpen:false,
+};
+let pivaChart = null, dipChart = null;
+let lang = 'en';
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-home').classList.add('active');
+  document.getElementById('back-btn').classList.remove('visible');
+}
+
+function goScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('back-btn').classList.add('visible');
+}
+
+// ─────────────────────────────────────────────
+// LANGUAGE
+// ─────────────────────────────────────────────
+const t = k => TR[lang][k] || k;
+const $ = id => document.getElementById(id);
+
+function setLang(l) {
+  lang = l;
+  PS.lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b =>
+    b.classList.toggle('active', b.textContent.trim().toLowerCase() === l)
+  );
+  applyTranslations();
+  calculatePiva();
+  calculateDip();
+}
+
+function applyTranslations() {
+  const L = TR[lang];
+  $('h-title').textContent = L.pageTitle;
+  $('h-subtitle').textContent = L.headerSub;
+  $('back-label').textContent = L.backLabel;
+  // Home
+  $('home-eyebrow').textContent = L.homeEyebrow;
+  $('home-title').textContent = L.homeTitle;
+  $('home-subtitle').textContent = L.homeSubtitle;
+  $('tag-piva').textContent = L.tagPiva;
+  $('tag-dip').textContent = L.tagDip;
+  $('card-piva-title').textContent = L.cardPivaTitle;
+  $('card-piva-desc').textContent = L.cardPivaDesc;
+  $('card-dip-title').textContent = L.cardDipTitle;
+  $('card-dip-desc').textContent = L.cardDipDesc;
+  $('cta-piva').textContent = L.ctaPiva;
+  $('cta-dip').textContent = L.ctaDip;
+  // P.IVA
+  $('lbl-regime').textContent = L.regime;
+  $('btn-forfettario').textContent = L.forfettario;
+  $('btn-ordinario').textContent = L.ordinario;
+  $('lbl-ateco-helper').innerHTML = '🔍 ' + L.atecoHelper;
+  $('job-input').placeholder = L.jobPlaceholder;
+  $('lbl-category').textContent = L.category;
+  $('lbl-years').textContent = L.years;
+  $('lbl-under5').textContent = L.under5;
+  $('lbl-over5').textContent = L.over5;
+  $('lbl-income-card').textContent = L.incomeCard;
+  $('btn-single').textContent = L.singleInvoice;
+  $('btn-b2b').textContent = L.b2bContract;
+  $('lbl-yearly-switch').textContent = L.yearlySwitch;
+  $('lbl-inps-card').textContent = L.inpsCard;
+  $('lbl-inps-type').textContent = L.inpsType;
+  $('opt-gs').textContent = L.gs;
+  $('opt-art').textContent = L.art;
+  $('opt-com').textContent = L.com;
+  $('lbl-rivalsa').textContent = L.rivalsa;
+  $('lbl-rivalsa-desc').textContent = L.rivalsaDesc;
+  $('piva-res-label').textContent = L.resLabel;
+  $('piva-placeholder-text').textContent = L.placeholder;
+  $('piva-deduct-label').textContent = L.deductToggle;
+  $('lbl-commercialista').textContent = L.commercialista;
+  $('lbl-software').textContent = L.software;
+  $('lbl-other').textContent = L.other;
+  $('lbl-actual-costs').textContent = L.actualCosts;
+  // Dipendente
+  $('lbl-dip-contract').textContent = L.dipContract;
+  $('lbl-inps-dip-type').textContent = L.inpsDipType;
+  $('dip-opt-std').textContent = L.dipStd;
+  $('dip-opt-app').textContent = L.dipApp;
+  $('lbl-months').textContent = L.months;
+  $('lbl-12m').textContent = L.lbl12m;
+  $('lbl-13m').textContent = L.lbl13m;
+  $('lbl-14m').textContent = L.lbl14m;
+  $('lbl-ral-card').textContent = L.ralCard;
+  $('dip-btn-monthly').textContent = L.monthly;
+  $('dip-btn-yearly').textContent = L.yearly;
+  $('dip-placeholder-text').textContent = L.dipPlaceholder;
+  $('dip-deduct-label').textContent = L.dipDeductToggle;
+  $('lbl-meal-vouchers').textContent = L.mealVouchers;
+  $('lbl-welfare').textContent = L.welfare;
+  $('dip-res-label').textContent = L.dipResLabel;
+  populateCategories();
+  updatePivaHint();
+  updateDipHint();
+}
+
+// ─────────────────────────────────────────────
+// CATEGORIES
+// ─────────────────────────────────────────────
+function populateCategories() {
+  const sel = $('cat-select'), cur = sel.value || PS.catId;
+  sel.innerHTML = '';
+  ATECO.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = `${c.name[lang]}  (${Math.round(c.coeff*100)}%)`;
+    sel.appendChild(o);
+  });
+  sel.value = cur || 'prof78';
+  PS.catId = sel.value;
+}
+
+function onCategoryChange() { PS.catId = $('cat-select').value; calculatePiva(); }
+
+// ─────────────────────────────────────────────
+// FUZZY SEARCH
+// ─────────────────────────────────────────────
+function score(q, text) {
+  if (!q || !text) return 0;
+  q = q.toLowerCase(); text = text.toLowerCase();
+  if (text === q) return 100;
+  if (text.startsWith(q)) return 85;
+  if (text.includes(q)) return 65;
+  let s = 0;
+  for (const w of q.split(/\s+/).filter(w=>w.length>1)) if (text.includes(w)) s += 45;
+  return s;
+}
+
+function onJobInput(val) {
+  const list = $('suggestions');
+  if (!val || val.length < 2) { list.innerHTML=''; return; }
+  const results = ATECO.map(c => {
+    let max = score(val, c.name[lang]);
+    for (const kw of c.kw) { const s2=score(val,kw); if(s2>max) max=s2; }
+    return {c, max};
+  }).filter(x=>x.max>20).sort((a,b)=>b.max-a.max).slice(0,4);
+  list.innerHTML='';
+  results.forEach(({c})=>{
+    const el=document.createElement('div');
+    el.className='suggestion-item';
+    el.innerHTML=`<span>${c.name[lang]}</span><span class="suggestion-coeff">${Math.round(c.coeff*100)}%</span>`;
+    el.onclick=()=>{ $('cat-select').value=c.id; PS.catId=c.id; list.innerHTML=''; $('job-input').value=''; calculatePiva(); };
+    list.appendChild(el);
+  });
+}
+
+// ─────────────────────────────────────────────
+// P.IVA CONTROLS
+// ─────────────────────────────────────────────
+function setRegime(r) {
+  PS.regime = r;
+  $('btn-forfettario').classList.toggle('active', r==='forfettario');
+  $('btn-ordinario').classList.toggle('active', r==='ordinario');
+  $('years-group').style.display        = r==='forfettario' ? '' : 'none';
+  $('actual-costs-group').style.display = r==='ordinario'   ? '' : 'none';
+  $('rivalsa-row').style.display        = r==='forfettario' ? '' : 'none';
+  calculatePiva();
+}
+function setYears(y) {
+  PS.years = y;
+  $('opt-under5').classList.toggle('selected', y==='under5');
+  $('opt-over5').classList.toggle('selected', y==='over5');
+  calculatePiva();
+}
+function setInvoiceType(type) {
+  PS.invoiceType = type;
+  $('btn-single').classList.toggle('active', type==='single');
+  $('btn-b2b').classList.toggle('active', type==='b2b');
+  const row = $('yearly-switch-row');
+  row.style.display = type==='b2b' ? 'flex' : 'none';
+  if (type==='single') { PS.period='monthly'; $('yearly-toggle').checked=false; }
+  updatePivaHint(); calculatePiva();
+}
+function onYearlyToggle(checked) {
+  PS.period = checked ? 'yearly' : 'monthly';
+  updatePivaHint(); calculatePiva();
+}
+function onIncomeInput(v) { PS.incomeRaw = v.replace(/[^0-9.]/g,''); updatePivaHint(); calculatePiva(); }
+function updatePivaHint() {
+  const v=parseFloat(PS.incomeRaw)||0, L=TR[lang], h=$('period-hint');
+  if(v>0) {
+    if(PS.invoiceType==='single') h.textContent = L.hintSingleInvoice;
+    else h.textContent = PS.period==='monthly' ? L.hintMonthly+fmt(v*12)+' / '+L.year : L.hintYearly+fmt(v/12)+' / '+L.month;
+  } else h.textContent='';
+}
+
+// ─────────────────────────────────────────────
+// DIPENDENTE CONTROLS
+// ─────────────────────────────────────────────
+function setDipPeriod(p) {
+  DS.period = p;
+  $('dip-btn-monthly').classList.toggle('active', p==='monthly');
+  $('dip-btn-yearly').classList.toggle('active', p==='yearly');
+  updateDipHint(); calculateDip();
+}
+function onDipIncomeInput(v) { DS.incomeRaw=v.replace(/[^0-9.]/g,''); updateDipHint(); calculateDip(); }
+function updateDipHint() {
+  const v=parseFloat(DS.incomeRaw)||0, L=TR[lang], h=$('dip-period-hint');
+  if(v>0) h.textContent = DS.period==='monthly' ? L.hintMonthly+fmt(v*12)+' / '+L.year : L.hintYearly+fmt(v/12)+' / '+L.month;
+  else h.textContent='';
+}
+function setMonths(m) {
+  DS.months = m;
+  [12,13,14].forEach(n => $('opt-'+n+'m').classList.toggle('selected', n===m));
+  calculateDip();
+}
+
+function toggleDeductions(type) {
+  if (type==='piva') {
+    const open = !($('piva-deductions-body').classList.contains('open'));
+    $('piva-deductions-body').classList.toggle('open', open);
+    $('piva-deduct-icon').textContent = open ? '−' : '+';
+    if(open) calculatePiva();
+  } else {
+    const open = !($('dip-deductions-body').classList.contains('open'));
+    $('dip-deductions-body').classList.toggle('open', open);
+    $('dip-deduct-icon').textContent = open ? '−' : '+';
+    if(open) calculateDip();
+  }
+}
+
+// ─────────────────────────────────────────────
+// SHARED HELPERS
+// ─────────────────────────────────────────────
+function fmt(val) {
+  return '€'+Math.abs(val).toLocaleString(lang==='it'?'it-IT':'en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function pct(v) { return (v*100).toFixed(1)+'%'; }
+function pi(id) { return parseFloat($(id).value.replace(/[^0-9.]/g,''))||0; }
+
+function irpefCalc(base) {
+  if(base<=0) return 0;
+  if(base<=28000) return base*0.23;
+  if(base<=50000) return 28000*0.23+(base-28000)*0.35;
+  return 28000*0.23+22000*0.35+(base-50000)*0.43;
+}
+function inpsCalc(taxable, type) {
+  if(type==='gs')  return {total:taxable*0.2607, rate:0.2607};
+  if(type==='art') return {total:Math.max(taxable*0.2448,4427), rate:0.2448};
+  return {total:Math.max(taxable*0.2496,4515), rate:0.2496};
+}
+
+// ─────────────────────────────────────────────
+// P.IVA CALCULATION
+// ─────────────────────────────────────────────
+function calculatePiva() {
+  const rev = (() => { const v=parseFloat(PS.incomeRaw)||0; if(PS.invoiceType==='single') return v; return PS.period==='monthly'?v*12:v; })();
+  const ded = { c:pi('d-commercialista'), s:pi('d-software'), o:pi('d-other') };
+  ded.total = ded.c+ded.s+ded.o;
+  if(rev<=0){ $('piva-results-placeholder').style.display=''; $('piva-results-content').style.display='none'; $('forfettario-warning').classList.remove('show'); return; }
+  $('piva-results-placeholder').style.display='none'; $('piva-results-content').style.display='';
+  const cat=ATECO.find(c=>c.id===PS.catId)||ATECO[0];
+  const inpsType=$('inps-select').value;
+  const rivalsa=$('rivalsa-toggle').checked;
+  let R;
+  if(PS.regime==='forfettario') {
+    const w=$('forfettario-warning');
+    rev>85000?(w.textContent=t('forfettarioWarn'),w.classList.add('show')):w.classList.remove('show');
+    const taxRate=PS.years==='under5'?0.05:0.15;
+    const taxable=rev*cat.coeff;
+    const inps=inpsCalc(taxable,inpsType);
+    const rivalsaAmt=(rivalsa&&inpsType==='gs')?rev*0.04:0;
+    const netINPS=inps.total-rivalsaAmt;
+    const taxBase=Math.max(taxable-inps.total,0);
+    const tax=taxBase*taxRate;
+    const netBefore=rev-netINPS-tax;
+    const realNet=netBefore-ded.total;
+    R={type:'forfettario',rev,coeff:cat.coeff,taxable,inps:inps.total,rivalsaAmt,netINPS,taxBase,tax,taxRate,irpef:null,regional:null,municipal:null,actualCosts:0,netBefore,ded,realNet,monthly:realNet/12,effRate:rev>0?(netINPS+tax)/rev:0};
+  } else {
+    $('forfettario-warning').classList.remove('show');
+    const actualCosts=parseFloat($('actual-costs-input').value.replace(/[^0-9.]/g,''))||0;
+    const taxable=Math.max(rev-actualCosts,0);
+    const inps=inpsCalc(taxable,inpsType);
+    const taxBase=Math.max(taxable-inps.total,0);
+    const irpefAmt=irpefCalc(taxBase);
+    const regional=taxBase*0.0173, municipal=taxBase*0.005;
+    const totalTax=irpefAmt+regional+municipal;
+    const netBefore=rev-inps.total-totalTax;
+    const realNet=netBefore-ded.total;
+    R={type:'ordinario',rev,coeff:cat.coeff,taxable,inps:inps.total,rivalsaAmt:0,netINPS:inps.total,taxBase,tax:totalTax,taxRate:null,irpef:irpefAmt,regional,municipal,actualCosts,netBefore,ded,realNet,monthly:realNet/12,effRate:rev>0?(inps.total+totalTax)/rev:0};
+  }
+  renderPivaResults(R); renderPivaChart(R);
+}
+
+function brRow(lbl,val,cls=''){return`<div class="br-row ${cls}"><span class="lbl">${lbl}</span><span class="val">${cls==='neg'?'−':''}${fmt(val)}</span></div>`;}
+function brInfoRow(lbl,val){return`<div class="br-row br-info"><span class="lbl">${lbl}</span><span class="val">${fmt(val)}</span></div>`;}
+function brSection(lbl){return`<div class="br-row br-section"><span class="lbl">${lbl}</span></div>`;}
+function brNet(lbl,val,color=''){return`<div class="br-row br-net"><span class="lbl">${lbl}</span><span class="val" style="${color?'color:'+color:''}">${fmt(val)}</span></div>`;}
+
+function renderPivaResults(R) {
+  const L=TR[lang];
+  $('piva-res-label').textContent=L.resLabel;
+  $('piva-res-net').textContent=fmt(R.realNet);
+  $('piva-res-monthly').textContent=fmt(R.monthly)+' '+L.resMonthly;
+  $('piva-res-rate').textContent=L.resRate+pct(R.effRate);
+  let h='';
+  h+=brRow(L.gross,R.rev);
+  if(R.type==='forfettario'){
+    h+=brRow(`${L.coefficient} (${Math.round(R.coeff*100)}%)`,R.taxable);
+    h+=brRow(L.inpsTotal,R.inps,'neg');
+    if(R.rivalsaAmt>0) h+=brRow(L.rivalsaRec,R.rivalsaAmt,'pos');
+    h+=brRow(L.netINPS,R.netINPS,'neg');
+    h+=brRow(L.taxBase,R.taxBase);
+    h+=brRow(`${L.incomeTax} (${pct(R.taxRate)})`,R.tax,'neg');
+  } else {
+    if(R.actualCosts>0){h+=brRow(L.actualCostsLbl,R.actualCosts,'neg'); h+=brRow(L.taxable,R.taxable);}
+    h+=brRow(L.inpsTotal,R.inps,'neg');
+    h+=brRow(L.taxBase,R.taxBase);
+    h+=brRow(L.irpef,R.irpef,'neg');
+    h+=brRow(L.regional,R.regional,'neg');
+    h+=brRow(L.municipal,R.municipal,'neg');
+  }
+  h+=brNet(L.netBefore,R.netBefore);
+  if(R.ded.total>0){
+    h+=brSection(L.deductsCosts);
+    if(R.ded.c>0) h+=brRow(L.commercialistaLbl,R.ded.c,'neg');
+    if(R.ded.s>0) h+=brRow(L.softwareLbl,R.ded.s,'neg');
+    if(R.ded.o>0) h+=brRow(L.otherLbl,R.ded.o,'neg');
+    h+=`<div class="br-row br-net" style="margin-top:4px"><span class="lbl" style="font-weight:700">${L.realNet}</span><span class="val" style="color:var(--green);font-size:20px">${fmt(R.realNet)}</span></div>`;
+  }
+  $('piva-breakdown').innerHTML=h;
+}
+
+function renderPivaChart(R) {
+  const L=TR[lang];
+  const segs=[
+    {label:L.chartINPS, value:R.netINPS, color:'#3B82F6'},
+    {label:L.chartTax,  value:R.tax,     color:'#F59E0B'},
+  ];
+  if(R.ded.total>0) segs.push({label:L.chartCosts,value:R.ded.total,color:'#94A3B8'});
+  segs.push({label:L.chartNet,value:Math.max(R.realNet,0),color:'#10B981'});
+  if(pivaChart) pivaChart.destroy();
+  pivaChart=new Chart($('piva-chart'),{type:'doughnut',data:{labels:segs.map(s=>s.label),datasets:[{data:segs.map(s=>s.value),backgroundColor:segs.map(s=>s.color),borderWidth:2,borderColor:'#fff',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.parsed)}  (${((ctx.parsed/R.rev)*100).toFixed(1)}%)`}}}}});
+  $('piva-legend').innerHTML=segs.map(s=>`<div class="legend-row"><div class="legend-dot" style="background:${s.color}"></div><span class="legend-lbl">${s.label}</span><span class="legend-val">${fmt(s.value)}</span></div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// DIPENDENTE CALCULATION
+// ─────────────────────────────────────────────
+function detrazioniDip(taxBase) {
+  // 2024 approximation
+  if(taxBase<=0) return 0;
+  if(taxBase<=15000) return 1955;
+  if(taxBase<=28000) return 1910+1190*((28000-taxBase)/13000);
+  if(taxBase<=50000) return Math.max(978*((50000-taxBase)/22000),0);
+  return 0;
+}
+function trattamentoIntegrativo(taxBase) {
+  // Bonus for lower incomes (2024)
+  if(taxBase<=15000) return 1200;
+  if(taxBase<=28000) return Math.max(1200*((28000-taxBase)/13000),0);
+  return 0;
+}
+
+function calculateDip() {
+  const ral = (()=>{ const v=parseFloat(DS.incomeRaw)||0; return DS.period==='monthly'?v*12:v; })();
+  const meal=pi('d-meal'), welfare=pi('d-welfare');
+  const benefits=meal+welfare;
+  if(ral<=0){$('dip-results-placeholder').style.display='';$('dip-results-content').style.display='none';$('dip-ral-info').style.display='none';return;}
+  $('dip-results-placeholder').style.display='none'; $('dip-results-content').style.display='';
+  const inpsRate=parseFloat($('dip-inps-type').value)||0.0919;
+  const inpsEmp=ral*inpsRate;
+  const taxBase=ral-inpsEmp;
+  const irpefL=irpefCalc(taxBase);
+  const detr=detrazioniDip(taxBase);
+  const tratt=trattamentoIntegrativo(taxBase);
+  const irpefN=Math.max(irpefL-detr-tratt,0);
+  const regional=taxBase*0.0173;
+  const municipal=taxBase*0.005;
+  const totalTax=irpefN+regional+municipal;
+  const netAnnual=ral-inpsEmp-totalTax;
+  const netMonthly=netAnnual/DS.months;
+  const totalNetWithBenefits=netAnnual+benefits;
+  const tfr=ral/13.5; // ~6.91% accrual
+  const costAzienda=ral*1.29;
+  const effRate=(inpsEmp+totalTax)/ral;
+  const R={ral,inpsRate,inpsEmp,taxBase,irpefL,detr,tratt,irpefN,regional,municipal,totalTax,netAnnual,netMonthly,benefits,meal,welfare,totalNetWithBenefits,tfr,costAzienda,effRate,months:DS.months};
+  // RAL info box
+  const infoBox=$('dip-ral-info');
+  infoBox.style.display='';
+  infoBox.textContent=t('ralInfo');
+  renderDipResults(R); renderDipChart(R);
+}
+
+function renderDipResults(R) {
+  const L=TR[lang];
+  $('dip-res-label').textContent=L.dipResLabel;
+  const displayNet=R.benefits>0?R.totalNetWithBenefits:R.netAnnual;
+  $('dip-res-net').textContent=fmt(displayNet);
+  $('dip-res-monthly').textContent=fmt(displayNet/R.months)+' '+L.resMonthly;
+  $('dip-res-rate').textContent=L.resRate+pct(R.effRate);
+  const inpsLabel=R.inpsRate===0.0919?L.dipINPS:L.dipINPSapp;
+  let h='';
+  h+=brRow(L.gross,R.ral);
+  h+=brRow(inpsLabel,R.inpsEmp,'neg');
+  h+=brRow(L.dipTaxBase,R.taxBase);
+  h+=brRow(L.irpefLorda,R.irpefL,'neg');
+  h+=brRow(L.detrazioni,R.detr,'pos');
+  if(R.tratt>0) h+=brRow(L.trattamento,R.tratt,'pos');
+  h+=brRow(L.irpefNetta,R.irpefN,'neg');
+  h+=brRow(L.addRegionale,R.regional,'neg');
+  h+=brRow(L.addComunale,R.municipal,'neg');
+  h+=brNet(L.netAnnual,R.netAnnual);
+  if(R.benefits>0){
+    h+=brSection(L.benefitsSection);
+    if(R.meal>0) h+=brRow(L.mealVouchersLbl,R.meal,'pos');
+    if(R.welfare>0) h+=brRow(L.welfareLbl,R.welfare,'pos');
+    h+=`<div class="br-row br-net" style="margin-top:4px"><span class="lbl" style="font-weight:700">${L.totalNet}</span><span class="val" style="color:var(--green);font-size:20px">${fmt(R.totalNetWithBenefits)}</span></div>`;
+  }
+  h+=brInfoRow(L.tfrInfo,R.tfr);
+  h+=brInfoRow(L.costAziendaInfo,R.costAzienda);
+  $('dip-breakdown').innerHTML=h;
+}
+
+function renderDipChart(R) {
+  const L=TR[lang];
+  const segs=[
+    {label:L.dipChartINPS, value:R.inpsEmp,  color:'#3B82F6'},
+    {label:L.dipChartTax,  value:R.totalTax,  color:'#F59E0B'},
+    {label:L.dipChartNet,  value:R.netAnnual, color:'#0D9488'},
+  ];
+  if(R.benefits>0) segs.push({label:L.dipChartBenefits,value:R.benefits,color:'#A78BFA'});
+  if(dipChart) dipChart.destroy();
+  const total=segs.reduce((s,x)=>s+x.value,0);
+  dipChart=new Chart($('dip-chart'),{type:'doughnut',data:{labels:segs.map(s=>s.label),datasets:[{data:segs.map(s=>s.value),backgroundColor:segs.map(s=>s.color),borderWidth:2,borderColor:'#fff',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.parsed)}  (${((ctx.parsed/R.ral)*100).toFixed(1)}%)`}}}}});
+  $('dip-legend').innerHTML=segs.map(s=>`<div class="legend-row"><div class="legend-dot" style="background:${s.color}"></div><span class="legend-lbl">${s.label}</span><span class="legend-val">${fmt(s.value)}</span></div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  populateCategories();
+  applyTranslations();
+  setRegime('forfettario');
+  setMonths(13);
+}
+init();
+</script>
+</body>
+</html>
