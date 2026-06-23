@@ -59,15 +59,12 @@
     .header-title { font-size: 15px; font-weight: 600; }
     .header-subtitle { font-size: 12px; color: var(--text-muted); }
     .header-right { display: flex; align-items: center; gap: 10px; }
-    .back-btn {
-      display: none; align-items: center; gap: 6px;
-      background: none; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 500; color: var(--primary);
-      padding: 6px 10px; border-radius: 8px; font-family: inherit;
-      transition: background .15s;
+    .back-btn { display: none !important; }
+
+    @media (max-width: 480px) {
+      .logo { width: 42px !important; height: 42px !important; border-radius: 10px !important; }
+      .logo img { width: 30px !important; height: 30px !important; }
     }
-    .back-btn:hover { background: var(--primary-light); }
-    .back-btn.visible { display: flex; }
     .lang-toggle {
       display: flex; background: var(--bg);
       border-radius: 9px; padding: 3px; gap: 2px;
