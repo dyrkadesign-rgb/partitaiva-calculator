@@ -360,13 +360,15 @@
         <button class="segment-btn active" onclick="setRegime('forfettario')" id="btn-forfettario">Forfettario</button>
         <button class="segment-btn" onclick="setRegime('ordinario')" id="btn-ordinario">Ordinario</button>
       </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label id="lbl-category">Business Category</label>
+      </div>
       <div class="ateco-helper">
         <div class="ateco-helper-title" id="lbl-ateco-helper">🔍 I don't know my category. Let's find it.</div>
         <input type="text" id="job-input" placeholder="Type your job title" oninput="onJobInput(this.value)" autocomplete="off" />
         <div class="suggestions-list" id="suggestions"></div>
       </div>
       <div class="form-group">
-        <label id="lbl-category">Business Category</label>
         <select id="cat-select" onchange="onCategoryChange()"></select>
       </div>
       <div id="years-group" class="form-group">
